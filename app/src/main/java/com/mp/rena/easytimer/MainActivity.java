@@ -20,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
     boolean timerOn = false;
     GridLayout grid;
     static int time = 1000;
+    boolean receiverOn = false;
 
     public void startTimer(View view) {
         if (!timerOn) {
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
             timerOn = true;
             starBtb.setText("STOP!");
             registerReceiver(br, new IntentFilter(BroadcastService.COUNTDOWN_BR));
+            receiverOn = true;
             time = Integer.parseInt(timerView.getText().toString()) * 60 * 1000;
             startService(new Intent(this, BroadcastService.class));
             Log.i("i", "Started service");
@@ -36,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
             timerView.setText("1");
             timerOn = false;
             unregisterReceiver(br);
+            receiverOn = false;
             stopService(new Intent(this, BroadcastService.class));
             starBtb.setText("START!");
         }
@@ -64,22 +67,25 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         registerReceiver(br, new IntentFilter(BroadcastService.COUNTDOWN_BR));
+        receiverOn = true;
         Log.i("i", "Registered broacast receiver");
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        unregisterReceiver(br);
+        if (receiverOn){
+            unregisterReceiver(br);
+            receiverOn = false;
+        }
         Log.i("i", "Unregistered broacast receiver");
     }
 
     @Override
     public void onStop() {
-        try {
+        if (receiverOn){
             unregisterReceiver(br);
-        } catch (Exception e) {
-            // Receiver was probably already stopped in onPause()
+            receiverOn = false;
         }
         super.onStop();
     }
@@ -102,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
                 starBtb.setText("START!");
                 timerOn = false;
                 unregisterReceiver(br);
+                receiverOn = false;
                 stopService(new Intent(this, BroadcastService.class));
             } else{
                 long millisUntilFinished = intent.getLongExtra("countdown", 0);
@@ -119,7 +126,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void buttonSelected(View view) {
-        unregisterReceiver(br);
+        if (receiverOn){
+            unregisterReceiver(br);
+            receiverOn = false;
+        }
         stopService(new Intent(this, BroadcastService.class));
         timerOn=false;
         switch (view.getTag().toString()) {
