@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.media.MediaPlayer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayout;
@@ -49,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
             starBtb.setText("STOP!");
             registerReceiver(br, new IntentFilter(BroadcastService.COUNTDOWN_BR));
             receiverOn = true;
-            //time = Integer.parseInt(timerView.getText().toString()) * 60 * 1000;
             startService(new Intent(this, BroadcastService.class));
             Log.i("i", "ReStarted service");
         } else {
@@ -86,6 +84,13 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(br, new IntentFilter(BroadcastService.COUNTDOWN_BR));
         receiverOn = true;
         Log.i("i", "Registered broacast receiver");
+        if (time < 1600){
+            Log.i("i", "resumed with initial value");
+            time = 60000;
+            timerOn = false;
+            starBtb.setText("START!");
+            timerView.setText("1");
+        }
     }
 
     @Override
