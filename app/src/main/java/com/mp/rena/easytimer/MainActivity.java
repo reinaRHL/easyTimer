@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
     EditText timerView;
     boolean timerOn = false;
     GridLayout grid;
-    static int time = 1000;
+    static long time = 60000;
     boolean receiverOn = false;
 
     public void startTimer(View view) {
@@ -44,6 +44,23 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void restartTimer() {
+        if (timerOn) {
+            starBtb.setText("STOP!");
+            registerReceiver(br, new IntentFilter(BroadcastService.COUNTDOWN_BR));
+            receiverOn = true;
+            //time = Integer.parseInt(timerView.getText().toString()) * 60 * 1000;
+            startService(new Intent(this, BroadcastService.class));
+            Log.i("i", "ReStarted service");
+        } else {
+            //stop
+            timerView.setText(String.valueOf(time/60/1000));
+            unregisterReceiver(br);
+            receiverOn = false;
+            stopService(new Intent(this, BroadcastService.class));
+            starBtb.setText("START!");
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,8 +119,6 @@ public class MainActivity extends AppCompatActivity {
         if (intent.getExtras() != null) {
             if(intent.getLongExtra("countdown", 0) == 0L){
                 Log.i("i", "lastcall");
-                MediaPlayer mp = MediaPlayer.create(getApplicationContext(), R.raw.sound);
-                mp.start();
                 timerView.setText("1");
                 starBtb.setText("START!");
                 timerOn = false;
@@ -134,17 +149,43 @@ public class MainActivity extends AppCompatActivity {
         timerOn=false;
         switch (view.getTag().toString()) {
             case "spaghetti":
+                time = 9*60*1000;
                 timerView.setText("9");
+                starBtb.setText("START!");
                 break;
             case "soft":
+                time = 6*60*1000;
                 timerView.setText("6");
+                starBtb.setText("START!");
                 break;
             case "hard":
+                time = 12*60*1000;
                 timerView.setText("12");
+                starBtb.setText("START!");
                 break;
             case "potato":
+                time = 15*60*1000;
                 timerView.setText("15");
+                starBtb.setText("START!");
                 break;
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong("timeLeft", time);
+        outState.putBoolean("timerOn", timerOn);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        time = savedInstanceState.getLong("timeLeft");
+        timerOn = savedInstanceState.getBoolean("timerOn");
+        if (timerOn){
+            restartTimer();
+        }
+
     }
 }

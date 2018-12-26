@@ -2,6 +2,7 @@ package com.mp.rena.easytimer;
 
 import android.app.Service;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.util.Log;
@@ -25,6 +26,7 @@ public class BroadcastService extends Service {
             @Override
             public void onTick(long l) {
                 Log.i(TAG, "Countdown seconds remaining: " + l / 1000);
+                time = l;
                 bi.putExtra("countdown", l);
                 sendBroadcast(bi);
             }
@@ -32,6 +34,8 @@ public class BroadcastService extends Service {
             @Override
             public void onFinish() {
                 bi.putExtra("countdown", 0L);
+                MediaPlayer mp = MediaPlayer.create(getApplicationContext(), R.raw.sound);
+                mp.start();
                 sendBroadcast(bi);
                 Log.i(TAG, "Timer finished");
             }
