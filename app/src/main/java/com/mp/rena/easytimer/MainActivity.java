@@ -30,7 +30,6 @@ public class MainActivity extends AppCompatActivity {
         starBtb = findViewById(R.id.startBtn);
         timerView = findViewById(R.id.clockTextView);
         grid = findViewById(R.id.gridLayout);
-
     }
 
     private BroadcastReceiver br = new BroadcastReceiver() {
@@ -110,6 +109,9 @@ public class MainActivity extends AppCompatActivity {
             registerReceiver(br, new IntentFilter(BroadcastService.COUNTDOWN_BR));
             receiverOn = true;
             time = Integer.parseInt(timerView.getText().toString()) * 60 * 1000;
+            if (timerView.getText().toString().equals(null)){
+                time = 60000;
+            }
             startService(new Intent(this, BroadcastService.class));
             Log.i("i", "Started service");
 
