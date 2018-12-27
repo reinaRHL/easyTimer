@@ -16,49 +16,11 @@ public class MainActivity extends AppCompatActivity {
 
     Button starBtb;
     EditText timerView;
-    boolean timerOn = false;
+    static boolean timerOn = false;
     GridLayout grid;
     static long time = 60000;
     boolean receiverOn = false;
 
-    public void startTimer(View view) {
-        if (!timerOn) {
-            //start timer
-            timerOn = true;
-            starBtb.setText("STOP!");
-            registerReceiver(br, new IntentFilter(BroadcastService.COUNTDOWN_BR));
-            receiverOn = true;
-            time = Integer.parseInt(timerView.getText().toString()) * 60 * 1000;
-            startService(new Intent(this, BroadcastService.class));
-            Log.i("i", "Started service");
-
-        } else {
-            //stop
-            timerView.setText("1");
-            timerOn = false;
-            unregisterReceiver(br);
-            receiverOn = false;
-            stopService(new Intent(this, BroadcastService.class));
-            starBtb.setText("START!");
-        }
-    }
-
-    public void restartTimer() {
-        if (timerOn) {
-            starBtb.setText("STOP!");
-            registerReceiver(br, new IntentFilter(BroadcastService.COUNTDOWN_BR));
-            receiverOn = true;
-            startService(new Intent(this, BroadcastService.class));
-            Log.i("i", "ReStarted service");
-        } else {
-            //stop
-            timerView.setText(String.valueOf(time/60/1000));
-            unregisterReceiver(br);
-            receiverOn = false;
-            stopService(new Intent(this, BroadcastService.class));
-            starBtb.setText("START!");
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,15 +43,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(br, new IntentFilter(BroadcastService.COUNTDOWN_BR));
-        receiverOn = true;
-        Log.i("i", "Registered broacast receiver");
-        if (time < 1600){
+        if (!timerOn){
             Log.i("i", "resumed with initial value");
             time = 60000;
-            timerOn = false;
-            starBtb.setText("START!");
-            timerView.setText("1");
+            setBtnAndtimerViewInitial();
+            stopService(new Intent(this, BroadcastService.class));
+        } else{
+            registerReceiver(br, new IntentFilter(BroadcastService.COUNTDOWN_BR));
+            receiverOn = true;
+            Log.i("i", "Registered broacast receiver");
         }
     }
 
@@ -97,8 +59,7 @@ public class MainActivity extends AppCompatActivity {
     public void onPause() {
         super.onPause();
         if (receiverOn){
-            unregisterReceiver(br);
-            receiverOn = false;
+            unregisterRev();
         }
         Log.i("i", "Unregistered broacast receiver");
     }
@@ -106,8 +67,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onStop() {
         if (receiverOn){
-            unregisterReceiver(br);
-            receiverOn = false;
+            unregisterRev();
         }
         super.onStop();
     }
@@ -122,13 +82,10 @@ public class MainActivity extends AppCompatActivity {
     private void updateGUI(Intent intent){
         Log.i("i", "update gui");
         if (intent.getExtras() != null) {
-            if(intent.getLongExtra("countdown", 0) == 0L){
+            if(!timerOn){
                 Log.i("i", "lastcall");
-                timerView.setText("1");
-                starBtb.setText("START!");
-                timerOn = false;
-                unregisterReceiver(br);
-                receiverOn = false;
+                setBtnAndtimerViewInitial();
+                unregisterRev();
                 stopService(new Intent(this, BroadcastService.class));
             } else{
                 long millisUntilFinished = intent.getLongExtra("countdown", 0);
@@ -145,37 +102,72 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void startTimer(View view) {
+        if (!timerOn) {
+            //start timer
+            timerOn = true;
+            starBtb.setText("STOP!");
+            registerReceiver(br, new IntentFilter(BroadcastService.COUNTDOWN_BR));
+            receiverOn = true;
+            time = Integer.parseInt(timerView.getText().toString()) * 60 * 1000;
+            startService(new Intent(this, BroadcastService.class));
+            Log.i("i", "Started service");
+
+        } else {
+            //stop
+            setBtnAndtimerViewInitial();
+            unregisterRev();
+            timerOn = false;
+            stopService(new Intent(this, BroadcastService.class));
+        }
+    }
+
+    public void unregisterRev(){
+        unregisterReceiver(br);
+        receiverOn = false;
+    }
     public void buttonSelected(View view) {
         if (receiverOn){
-            unregisterReceiver(br);
-            receiverOn = false;
+            unregisterRev();
         }
         stopService(new Intent(this, BroadcastService.class));
         timerOn=false;
         switch (view.getTag().toString()) {
             case "spaghetti":
-                time = 9*60*1000;
-                timerView.setText("9");
-                starBtb.setText("START!");
+                setPrefixTime(9);
                 break;
             case "soft":
-                time = 6*60*1000;
-                timerView.setText("6");
-                starBtb.setText("START!");
+                setPrefixTime(6);
                 break;
             case "hard":
-                time = 12*60*1000;
-                timerView.setText("12");
-                starBtb.setText("START!");
+                setPrefixTime(12);
                 break;
             case "potato":
-                time = 15*60*1000;
-                timerView.setText("15");
-                starBtb.setText("START!");
+                setPrefixTime(15);
                 break;
         }
     }
 
+    public void setPrefixTime(int fixedTime){
+        time = fixedTime*60*1000;
+        timerView.setText(String.valueOf(fixedTime));
+        starBtb.setText("START!");
+    }
+
+    public void setBtnAndtimerViewInitial(){
+        timerView.setText("1");
+        starBtb.setText("START!");
+    }
+
+    public void restartTimer() {
+        starBtb.setText("STOP!");
+        registerReceiver(br, new IntentFilter(BroadcastService.COUNTDOWN_BR));
+        receiverOn = true;
+        startService(new Intent(this, BroadcastService.class));
+        Log.i("i", "Restarted service");
+    }
+
+    // called when screen is rotated
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);

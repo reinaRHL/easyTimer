@@ -7,6 +7,8 @@ import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.squareup.haha.perflib.Main;
+
 import static com.mp.rena.easytimer.MainActivity.time;
 
 public class BroadcastService extends Service {
@@ -33,7 +35,7 @@ public class BroadcastService extends Service {
 
             @Override
             public void onFinish() {
-                bi.putExtra("countdown", 0L);
+                MainActivity.timerOn = false;
                 MediaPlayer mp = MediaPlayer.create(getApplicationContext(), R.raw.sound);
                 mp.start();
                 sendBroadcast(bi);
