@@ -7,7 +7,6 @@ import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.squareup.haha.perflib.Main;
 
 import static com.mp.rena.easytimer.MainActivity.time;
 
